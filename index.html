@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>M43STRO</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #ffffff;
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        width 0.3s ease, 
+                        height 0.3s ease,
+                        background-color 0.3s ease;
+            mix-blend-mode: difference;
+        }
+
+        .cursor.hovered {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: transparent;
+        }
+
+        .screen {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* First Screen - M43STRO */
+        .first-screen {
+            perspective: 1000px;
+        }
+
+        .main-title {
+            font-size: clamp(3rem, 15vw, 12rem);
+            font-weight: 900;
+            letter-spacing: 0.2em;
+            position: relative;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .main-title::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff006e, #8338ec, #3a86ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transform: translateZ(-100px) rotateX(20deg);
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .main-title:hover {
+            transform: scale(1.05) translateZ(50px);
+            letter-spacing: 0.3em;
+        }
+
+        .main-title:hover::before {
+            opacity: 1;
+            transform: translateZ(0) rotateX(0deg);
+        }
+
+        .main-title .letter {
+            display: inline-block;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            position: relative;
+        }
+
+        .main-title:hover .letter {
+            animation: floatLetter 0.6s ease-in-out forwards;
+        }
+
+        @keyframes floatLetter {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+        }
+
+        .glitch-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .main-title:hover + .glitch-overlay {
+            opacity: 0.1;
+        }
+
+        /* Second Screen */
+        .second-screen {
+            padding: 4rem;
+            background: linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 100%);
+        }
+
+        .content-wrapper {
+            max-width: 800px;
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 2vw, 1.5rem);
+            line-height: 1.8;
+            margin-bottom: 4rem;
+            opacity: 0.8;
+            font-weight: 300;
+            transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            cursor: pointer;
+            padding: 2rem;
+            border: 1px solid transparent;
+        }
+
+        .subtitle:hover {
+            opacity: 1;
+            transform: scale(1.02);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.02);
+            box-shadow: 0 0 40px rgba(255, 255, 255, 0.05);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 3rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .social-link {
+            position: relative;
+            font-size: clamp(1.2rem, 2vw, 1.8rem);
+            color: #fff;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 1rem 2rem;
+            overflow: hidden;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            cursor: pointer;
+        }
+
+        .social-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.7s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .social-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #ff006e, #8338ec, #3a86ff);
+            transition: width 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .social-link:hover {
+            transform: translateY(-5px) scale(1.1);
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .social-link:hover::before {
+            left: 100%;
+        }
+
+        .social-link:hover::after {
+            width: 100%;
+        }
+
+        .social-link span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Particle Background */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Magnetic effect container */
+        .magnetic-wrap {
+            display: inline-block;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 3rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            opacity: 0.6;
+            cursor: pointer;
+            transition: all 0.5s ease;
+        }
+
+        .scroll-indicator:hover {
+            opacity: 1;
+            transform: translateX(-50%) translateY(10px);
+        }
+
+        .scroll-line {
+            width: 2px;
+            height: 60px;
+            background: linear-gradient(180deg, #fff, transparent);
+            animation: scrollPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollPulse {
+            0%, 100% {
+                opacity: 0.3;
+                transform: scaleY(0.8);
+            }
+            50% {
+                opacity: 1;
+                transform: scaleY(1.2);
+            }
+        }
+
+        .scroll-text {
+            font-size: 0.8rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .social-links {
+                gap: 2rem;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .second-screen {
+                padding: 2rem;
+            }
+
+            .cursor {
+                display: none;
+            }
+
+            body {
+                cursor: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="cursor"></div>
+    
+    <div class="particles" id="particles"></div>
+
+    <!-- First Screen -->
+    <section class="screen first-screen">
+        <h1 class="main-title" data-text="M43STRO">
+            <span class="letter">M</span><span class="letter">4</span><span class="letter">3</span><span class="letter">S</span><span class="letter">T</span><span class="letter">R</span><span class="letter">O</span>
+        </h1>
+        <div class="glitch-overlay"></div>
+        
+        <div class="scroll-indicator magnetic-wrap hover-target">
+            <div class="scroll-line"></div>
+            <span class="scroll-text">Scroll</span>
+        </div>
+    </section>
+
+    <!-- Second Screen -->
+    <section class="screen second-screen">
+        <div class="content-wrapper">
+            <p class="subtitle hover-target">
+                Digital artisan crafting experiences at the intersection of code and creativity. 
+                Every pixel is a statement, every interaction tells a story. 
+                Welcome to my universe.
+            </p>
+            
+            <div class="social-links">
+                <a href="#" class="social-link magnetic-wrap hover-target">
+                    <span>Telegram</span>
+                </a>
+                <a href="#" class="social-link magnetic-wrap hover-target">
+                    <span>GitHub</span>
+                </a>
+                <a href="#" class="social-link magnetic-wrap hover-target">
+                    <span>Twitter</span>
+                </a>
+                <a href="#" class="social-link magnetic-wrap hover-target">
+                    <span>Email</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Custom Cursor
+        const cursor = document.querySelector('.cursor');
+        const hoverTargets = document.querySelectorAll('.hover-target, .main-title, .social-link, .subtitle');
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        hoverTargets.forEach(target => {
+            target.addEventListener('mouseenter', () => {
+                cursor.classList.add('hovered');
+            });
+            
+            target.addEventListener('mouseleave', () => {
+                cursor.classList.remove('hovered');
+            });
+        });
+
+        // Particles Generation
+        const particlesContainer = document.getElementById('particles');
+        const particleCount = 50;
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (Math.random() * 20 + 15) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Magnetic Effect
+        const magneticWraps = document.querySelectorAll('.magnetic-wrap');
+
+        magneticWraps.forEach(wrap => {
+            wrap.addEventListener('mousemove', (e) => {
+                const rect = wrap.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+                
+                wrap.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+            });
+            
+            wrap.addEventListener('mouseleave', () => {
+                wrap.style.transform = 'translate(0, 0)';
+            });
+        });
+
+        // Smooth Scroll
+        document.querySelector('.scroll-indicator').addEventListener('click', () => {
+            window.scrollTo({
+                top: window.innerHeight,
+                behavior: 'smooth'
+            });
+        });
+
+        // Title letter stagger effect on hover
+        const mainTitle = document.querySelector('.main-title');
+        const letters = document.querySelectorAll('.letter');
+
+        mainTitle.addEventListener('mouseenter', () => {
+            letters.forEach((letter, index) => {
+                setTimeout(() => {
+                    letter.style.transform = `translateY(-${Math.random() * 30 + 10}px) rotate(${Math.random() * 10 - 5}deg)`;
+                }, index * 50);
+            });
+        });
+
+        mainTitle.addEventListener('mouseleave', () => {
+            letters.forEach(letter => {
+                letter.style.transform = 'translateY(0) rotate(0deg)';
+            });
+        });
+
+        // Parallax effect on scroll
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const firstScreen = document.querySelector('.first-screen');
+            const mainTitle = document.querySelector('.main-title');
+            
+            if (scrolled < window.innerHeight) {
+                mainTitle.style.transform = `translateY(${scrolled * 0.3}px) scale(${1 - scrolled * 0.0005})`;
+            }
+        });
+
+        // Add subtle noise texture
+        function createNoise() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 200;
+            canvas.height = 200;
+            const ctx = canvas.getContext('2d');
+            
+            for (let i = 0; i < 5000; i++) {
+                ctx.fillStyle = `rgba(255, 255, 255, ${Math.random() * 0.05})`;
+                ctx.fillRect(Math.random() * 200, Math.random() * 200, 1, 1);
+            }
+            
+            return canvas.toDataURL();
+        }
+
+        document.body.style.backgroundImage = `url(${createNoise()})`;
+    </script>
+</body>
+</html>
